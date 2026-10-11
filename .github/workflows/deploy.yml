@@ -97,11 +97,12 @@ jobs:
           install -d -m 700 ~/.ssh
           printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
-          eval "$(ssh-agent -s)"
-          trap 'ssh-agent -k' EXIT
-          ssh-add - <<< "$SSH_PRIVATE_KEY"
+          SSH_KEY_FILE="$(mktemp)"
+          trap 'rm -f "$SSH_KEY_FILE"' EXIT
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$SSH_KEY_FILE"
+          chmod 600 "$SSH_KEY_FILE"
 
-          ssh -o StrictHostKeyChecking=yes -p "$SSH_PORT" "$SSH_USERNAME@$SSH_HOST" 'bash -se' <<EOF
+          ssh -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -i "$SSH_KEY_FILE" -p "$SSH_PORT" "$SSH_USERNAME@$SSH_HOST" 'bash -se' <<EOF
           set -euo pipefail
           umask 077
           trap 'rm -f /tmp/ai-dashboard-deploy.env' EXIT
