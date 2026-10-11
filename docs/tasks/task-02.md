@@ -20,6 +20,7 @@
 - 已创建 SQLite 初始迁移：`prisma/migrations/20261007000000_init/migration.sql`。
 - 已实现 Prisma Client 开发环境单例：`lib/prisma.ts`。
 - 已添加 `db:validate`、`db:generate`、`db:migrate` npm 脚本，并完善 SQLite 环境变量样例与 README。
+- 已添加 `postinstall` 自动执行 `prisma generate`，避免重新安装依赖后 Prisma Client 未初始化。
 - 已执行 `npm run db:validate`、`npm run db:generate`，均成功。
 
 ## SQLite 配置结果

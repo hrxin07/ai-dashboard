@@ -1,0 +1,127 @@
+name: Build and deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - prod
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: ai-dashboard-production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+        env:
+          DATABASE_URL: file:/tmp/ai-dashboard-ci.db
+      - run: npm run lint
+
+  build-and-deploy:
+    name: Build and deploy
+    needs: lint
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Define image names
+        id: image
+        shell: bash
+        run: |
+          echo "name=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push application image
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}
+          TAG: ${{ steps.image.outputs.tag }}
+        run: |
+          docker build --target runner --tag "$IMAGE:$TAG" --tag "$IMAGE:latest" .
+          docker push "$IMAGE:$TAG"
+          docker push "$IMAGE:latest"
+
+      - name: Build and push migration image
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}
+          TAG: ${{ steps.image.outputs.tag }}
+        run: |
+          docker build --target migration --tag "$IMAGE:$TAG-migrate" .
+          docker push "$IMAGE:$TAG-migrate"
+
+      - name: Deploy on production server
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}
+          TAG: ${{ steps.image.outputs.tag }}
+          SSH_HOST: ${{ vars.SSH_HOST }}
+          SSH_PORT: ${{ vars.SSH_PORT }}
+          SSH_USERNAME: ${{ vars.SSH_USERNAME }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ vars.SSH_KNOWN_HOSTS }}
+          GHCR_USERNAME: ${{ vars.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for deploy_value_name in SSH_HOST SSH_PORT SSH_USERNAME SSH_PRIVATE_KEY SSH_KNOWN_HOSTS GHCR_USERNAME GHCR_TOKEN DATABASE_URL JWT_SECRET; do
+            if [[ -z "${!deploy_value_name:-}" ]]; then
+              echo "::error::$deploy_value_name is empty"
+              exit 1
+            fi
+          done
+
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+          eval "$(ssh-agent -s)"
+          trap 'ssh-agent -k' EXIT
+          ssh-add - <<< "$SSH_PRIVATE_KEY"
+
+          ssh -o StrictHostKeyChecking=yes -p "$SSH_PORT" "$SSH_USERNAME@$SSH_HOST" 'bash -se' <<EOF
+          set -euo pipefail
+          umask 077
+          trap 'rm -f /tmp/ai-dashboard-deploy.env' EXIT
+          cat > /tmp/ai-dashboard-deploy.env <<ENVEOF
+          AI_DASHBOARD_IMAGE=$IMAGE:$TAG
+          AI_DASHBOARD_MIGRATE_IMAGE=$IMAGE:$TAG-migrate
+          DATABASE_URL=$DATABASE_URL
+          JWT_SECRET=$JWT_SECRET
+          ENVEOF
+          chmod 600 /tmp/ai-dashboard-deploy.env
+
+          printf '%s' '$GHCR_TOKEN' | docker login -u '$GHCR_USERNAME' --password-stdin ghcr.io
+          docker network inspect web > /dev/null 2>&1 || docker network create web
+          docker compose --profile migration --env-file /tmp/ai-dashboard-deploy.env -f /opt/stack/ai-dashboard/docker-compose.yml pull ai-dashboard migrate
+          docker compose --profile migration --env-file /tmp/ai-dashboard-deploy.env -f /opt/stack/ai-dashboard/docker-compose.yml run --rm migrate < /dev/null
+          docker compose --env-file /tmp/ai-dashboard-deploy.env -f /opt/stack/ai-dashboard/docker-compose.yml up -d --remove-orphans ai-dashboard
+          if ! docker compose --env-file /tmp/ai-dashboard-deploy.env -f /opt/stack/ai-dashboard/docker-compose.yml ps --status running --services | grep -qx ai-dashboard; then
+            docker compose --env-file /tmp/ai-dashboard-deploy.env -f /opt/stack/ai-dashboard/docker-compose.yml logs --tail=100 ai-dashboard
+            exit 1
+          fi
+          docker compose -f /opt/stack/nginx/docker-compose.yml up -d --remove-orphans
+          docker image prune -a -f
+          EOF

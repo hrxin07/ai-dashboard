@@ -42,7 +42,7 @@
 ```text
 npm run lint  ✅
 npm run build ✅
-开发服务器   ✅ http://localhost:3001（3000 端口已有进程，因此自动使用 3001）
+开发服务器   ✅ http://localhost:3001（项目固定使用 3001 端口）
 首页请求     ✅ HTTP 200
 ```
 

@@ -48,6 +48,9 @@
    npm run db:migrate:deploy
    ```
 
+   `npm install` 也会通过 `postinstall` 自动生成 Prisma Client。如果接口提示
+   `@prisma/client did not initialize yet`，重新执行 `npm run db:generate` 后再启动开发服务器。
+
 4. 导入职业方向演示数据（重复执行不会重复插入）：
 
    ```powershell
@@ -60,7 +63,7 @@
    npm run dev
    ```
 
-   浏览器打开终端输出的本地地址（通常为 `http://localhost:3000`）。
+   浏览器打开终端输出的本地地址：`http://localhost:3001`。
 
 ## 常用命令
 
@@ -90,6 +93,38 @@ JWT_SECRET="替换为至少 32 个字符的随机字符串"
 ```
 
 `DATABASE_URL` 相对于 Prisma schema，因此开发数据库文件为 `prisma/dev.db`。该文件是本地演示数据，不应提交真实个人数据或生产密钥。
+
+## Docker 部署
+
+项目根目录提供 `Dockerfile`，服务器端 Compose 配置位于 `stack/ai-dashboard/docker-compose.yml`（与应用仓库并列的 `stack` 目录）。GitHub Actions 部署时会先通过 migration 镜像执行 `prisma migrate deploy` 和种子数据导入，再启动 Next.js 应用镜像。
+
+SQLite 仍然需要配置 `DATABASE_URL`，并且必须指向容器内持久化目录，例如：
+
+```env
+AI_DASHBOARD_IMAGE=your-registry/ai-dashboard:latest
+DATABASE_URL=file:/app/data/ai-dashboard.db
+JWT_SECRET=替换为至少 32 个字符的随机字符串
+```
+
+其中 `DATABASE_URL` 的数据库文件位于 Docker volume `ai_dashboard_data` 中。不要把服务器生产密钥提交到仓库；通过服务器上的环境文件或 CI/CD Secret 注入 Compose。
+Compose 将宿主机 `3001` 映射到容器 `3001`。ai-dashboard 的本地和容器端口均为 `3001`，不会使用 `3000`。
+
+服务器的 Nginx 配置位于 `stack/nginx/conf.d/default.conf`，默认使用 `ai-dashboard.test` 转发到 Docker 网络中的 `ai-dashboard:3001`。正式域名启用前，将 `server_name ai-dashboard.test` 替换为实际域名。
+
+### GitHub Actions 部署
+
+`.github/workflows/deploy.yml` 会在 `prod` 分支推送或手动触发时执行：构建并推送 GHCR 镜像、通过 SSH 登录服务器、执行 Prisma migration、启动 `ai-dashboard` 容器并重新加载 Nginx。服务器上的 Compose 文件路径约定为 `/opt/stack/ai-dashboard/docker-compose.yml`。
+
+在 GitHub 的 `production` Environment 中配置以下变量和密钥：
+
+- Variables：`SSH_HOST`、`SSH_PORT`、`SSH_USERNAME`、`SSH_KNOWN_HOSTS`、`GHCR_USERNAME`
+- Secrets：`SSH_PRIVATE_KEY`、`GHCR_TOKEN`、`DATABASE_URL`、`JWT_SECRET`
+
+首次部署后如需导入职业方向演示数据，可执行：
+
+```powershell
+docker compose run --rm ai-dashboard npm run db:seed
+```
 
 ## 演示流程
 
