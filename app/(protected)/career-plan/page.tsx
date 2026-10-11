@@ -1,0 +1,2 @@
+import { CareerPlanForm } from "@/components/career-plan-form";
+export default function CareerPlanPage(){return <div className="profile-page plan-page"><header className="profile-page-head"><div><p className="profile-kicker">CAREER ROADMAP</p><h1>职业规划</h1><p>把目标拆成可执行的阶段计划，持续记录你的成长路径。</p></div><div className="profile-page-badge"><span>◇</span><p>明确目标<br/>持续行动</p></div></header><CareerPlanForm/></div>}

@@ -1,0 +1,122 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+type DashboardData = {
+  username: string;
+  plan: { targetDirection: string; targetPosition: string } | null;
+  tasks: {
+    id: string;
+    title: string;
+    status: string;
+    progress: number;
+    deadline: string | null;
+    priority: string;
+    subtasks: { completed: boolean }[];
+  }[];
+  total: number;
+  completed: number;
+  inProgress: number;
+  learningProgress: number;
+  completionRate: number;
+};
+
+export default function DashboardPage() {
+  const [data, setData] = useState<DashboardData | null>(null);
+  useEffect(() => {
+    fetch("/api/dashboard", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.success) setData(result.data);
+      });
+  }, []);
+
+  if (!data)
+    return (
+      <div className="dashboard-page">
+        <p className="empty-state">正在加载工作台…</p>
+      </div>
+    );
+
+  return (
+    <div className="dashboard-page">
+      <header>
+        <p className="profile-kicker">YOUR WORKBENCH</p>
+        <h1>你好，{data.username}</h1>
+        <p>今天也向你的职业目标迈进一步。</p>
+      </header>
+      <section className="dashboard-goal">
+        <div>
+          <span>当前目标</span>
+          <h2>
+            {data.plan
+              ? `${data.plan.targetDirection} · ${data.plan.targetPosition}`
+              : "暂未设置职业目标"}
+          </h2>
+        </div>
+        <Link href="/career-plan">{data.plan ? "编辑规划" : "创建规划"} →</Link>
+      </section>
+      <section className="stats-grid">
+        <article>
+          <span>任务总数</span>
+          <strong>{data.total}</strong>
+        </article>
+        <article>
+          <span>进行中</span>
+          <strong>{data.inProgress}</strong>
+        </article>
+        <article>
+          <span>已完成</span>
+          <strong>{data.completed}</strong>
+        </article>
+        <article>
+          <span>学习进度</span>
+          <strong>{data.learningProgress}%</strong>
+        </article>
+      </section>
+      <section className="dashboard-bottom">
+        <div className="upcoming">
+          <div className="task-list-head">
+            <h2>近期任务</h2>
+            <Link href="/learning">管理任务</Link>
+          </div>
+          {data.tasks.length ? (
+            data.tasks.map((task) => (
+              <div className="upcoming-row" key={task.id}>
+                <span
+                  className={
+                    task.status === "COMPLETED" ? "done-dot" : "todo-dot"
+                  }
+                ></span>
+                <div>
+                  <strong>{task.title}</strong>
+                  <small>
+                    {task.deadline
+                      ? `截止 ${task.deadline.slice(0, 10)}`
+                      : "暂未设置截止日期"}{" "}
+                    · {task.progress}%
+                    {task.subtasks.length
+                      ? ` · ${task.subtasks.filter((subtask) => subtask.completed).length}/${task.subtasks.length} 小任务`
+                      : ""}
+                  </small>
+                  <div className="progress-track compact">
+                    <span style={{ width: `${task.progress}%` }} />
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="empty-state">还没有任务，添加一个行动目标吧。</p>
+          )}
+        </div>
+        <div className="quick-actions">
+          <h2>快捷操作</h2>
+          <Link href="/learning">＋ 创建学习任务</Link>
+          <Link href="/recommendation">✦ 查看职业推荐</Link>
+          <Link href="/career-paths">◎ 探索职业方向</Link>
+        </div>
+      </section>
+    </div>
+  );
+}

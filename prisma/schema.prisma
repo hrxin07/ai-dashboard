@@ -1,0 +1,125 @@
+// Prisma data model for the AI career planning workbench.
+// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum TaskType {
+  COURSE
+  PROJECT
+  COMPETITION
+  JOB_PREP
+  OTHER
+}
+
+enum TaskPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  COMPLETED
+}
+
+model User {
+  id           String       @id @default(cuid())
+  username     String       @unique
+  email        String       @unique
+  passwordHash String
+  profile      Profile?
+  careerPlan   CareerPlan?
+  tasks        LearningTask[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([createdAt])
+}
+
+model Profile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  realName   String?
+  major      String   @default("人工智能")
+  grade      String?
+  school     String?
+  skills     String?
+  interests  String?
+  bio        String?
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+}
+
+model CareerPlan {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetDirection String
+  targetPosition  String
+  targetCity      String?
+  targetDate      DateTime?
+  skillFoundation String?
+  strengths       String?
+  weaknesses      String?
+  planContent     String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model LearningTask {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  type        TaskType     @default(OTHER)
+  priority    TaskPriority  @default(MEDIUM)
+  status      TaskStatus   @default(TODO)
+  deadline    DateTime?
+  description String?
+  progress    Int          @default(0)
+  subtasks    LearningSubtask[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([userId, status])
+  @@index([userId, deadline])
+}
+
+model LearningSubtask {
+  id        String       @id @default(cuid())
+  taskId    String
+  task      LearningTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  title     String
+  completed Boolean      @default(false)
+  sortOrder Int          @default(0)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([taskId, sortOrder])
+}
+
+model CareerPath {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  skills      String
+  courses     String
+  projects    String
+  prospect    String
+  tags        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+
+
