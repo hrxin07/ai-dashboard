@@ -1,15 +1,17 @@
 # syntax=docker/dockerfile:1
 
-FROM node:20-bookworm-slim AS deps
+FROM node:22-bookworm-slim AS dependencies
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl \
+  && rm -rf /var/lib/apt/lists/* \
+  && npm ci --ignore-scripts
 
-FROM node:20-bookworm-slim AS builder
+FROM dependencies AS builder
 WORKDIR /app
 
-COPY --from=deps /app/node_modules ./node_modules
 COPY package.json package-lock.json prisma.config.ts tsconfig.json next.config.ts ./
 COPY prisma ./prisma
 COPY app ./app
@@ -24,7 +26,7 @@ ENV SHADOW_DATABASE_URL=mysql://build:build@localhost:3306/ai_dashboard_shadow
 RUN npm run db:generate
 RUN npm run build
 
-FROM node:20-bookworm-slim AS runner
+FROM node:22-bookworm-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
