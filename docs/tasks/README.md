@@ -5,7 +5,7 @@
 ## 阶段一：基础与认证
 
 - [x] [Task 01：初始化 Next.js 项目与通用开发基线](./task-01.md)
-- [x] [Task 02：配置 Prisma、SQLite 与基础数据模型](./task-02.md)
+- [x] [Task 02：配置 Prisma、MySQL/MariaDB 与基础数据模型](./task-02.md)
 - [x] [Task 03：实现用户注册完整流程](./task-03.md)
 - [x] [Task 04：实现登录、JWT 与服务端访问保护](./task-04.md)
 - [x] [Task 05：建立应用壳、当前用户接口与退出登录](./task-05.md)
@@ -13,7 +13,7 @@
 ### 检查点：基础与认证
 
 - [x] 完成注册、登录、访问受保护页面、退出登录闭环。
-- [x] SQLite 迁移、Lint 和 Build 均通过。
+- [x] Prisma schema 校验、Client 生成与既有 Lint/Build 均通过；生产 MySQL/MariaDB 迁移由部署工作流执行。
 
 ## 阶段二：个人规划闭环
 

@@ -1,5 +1,8 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-const db = new PrismaClient();
+import { createPrismaAdapter } from "../lib/prisma-adapter";
+
+const db = new PrismaClient({ adapter: createPrismaAdapter() });
 const paths = [
 ["算法工程师","负责机器学习算法设计、训练与优化。","Python、数学基础、机器学习、PyTorch","机器学习课程项目","推荐系统或分类模型","夯实数学与模型训练能力","算法,模型,训练"],
 ["机器学习工程师","将模型应用到真实业务并保障训练和部署流程。","Python、深度学习、MLOps、Docker","端到端模型服务","模型部署与监控","积累工程化实践","工程,部署,MLOps"],

@@ -29,7 +29,8 @@ jobs:
           cache: npm
       - run: npm ci
         env:
-          DATABASE_URL: file:/tmp/ai-dashboard-ci.db
+          DATABASE_URL: mysql://build:build@localhost:3306/ai_dashboard
+          SHADOW_DATABASE_URL: mysql://build:build@localhost:3306/ai_dashboard_shadow
       - run: npm run lint
 
   build-and-deploy:
@@ -83,11 +84,12 @@ jobs:
           GHCR_USERNAME: ${{ vars.GHCR_USERNAME }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SHADOW_DATABASE_URL: ${{ secrets.SHADOW_DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         shell: bash
         run: |
           set -euo pipefail
-          for deploy_value_name in SSH_HOST SSH_PORT SSH_USERNAME SSH_PRIVATE_KEY SSH_KNOWN_HOSTS GHCR_USERNAME GHCR_TOKEN DATABASE_URL JWT_SECRET; do
+          for deploy_value_name in SSH_HOST SSH_PORT SSH_USERNAME SSH_PRIVATE_KEY SSH_KNOWN_HOSTS GHCR_USERNAME GHCR_TOKEN DATABASE_URL SHADOW_DATABASE_URL JWT_SECRET; do
             if [[ -z "${!deploy_value_name:-}" ]]; then
               echo "::error::$deploy_value_name is empty"
               exit 1
@@ -110,6 +112,7 @@ jobs:
           AI_DASHBOARD_IMAGE=$IMAGE:$TAG
           AI_DASHBOARD_MIGRATE_IMAGE=$IMAGE:$TAG-migrate
           DATABASE_URL=$DATABASE_URL
+          SHADOW_DATABASE_URL=$SHADOW_DATABASE_URL
           JWT_SECRET=$JWT_SECRET
           ENVEOF
           chmod 600 /tmp/ai-dashboard-deploy.env

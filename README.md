@@ -5,7 +5,7 @@
 ## 技术栈
 
 - Next.js 16（App Router）+ TypeScript + Tailwind CSS
-- Prisma 6 + SQLite
+- Prisma 7 + MySQL/MariaDB（使用 `@prisma/adapter-mariadb`）
 - JWT（`jose`）+ HttpOnly Cookie
 - Zod + bcryptjs
 
@@ -23,7 +23,7 @@
 ## 环境要求
 
 - Node.js 20.19 或更高版本
-- 无需单独安装数据库服务，项目使用本地 SQLite 文件。
+- MySQL 8 或 MariaDB 数据库服务；开发和生产均需一个业务数据库与一个独立的 shadow database。
 
 ## 本地启动
 
@@ -88,26 +88,27 @@ pm run db:seed`：导入/更新职业方向种子数据。
 数据库连接位于 `.env`：
 
 ```env
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="mysql://username:password@127.0.0.1:3306/ai_dashboard"
+SHADOW_DATABASE_URL="mysql://username:password@127.0.0.1:3306/ai_dashboard_shadow"
 JWT_SECRET="替换为至少 32 个字符的随机字符串"
 ```
 
-`DATABASE_URL` 相对于 Prisma schema，因此开发数据库文件为 `prisma/dev.db`。该文件是本地演示数据，不应提交真实个人数据或生产密钥。
+`DATABASE_URL` 指向业务数据库；`SHADOW_DATABASE_URL` 必须指向另一个空数据库，供 Prisma 在开发时安全校验迁移，二者不能相同。密码中含有 `@`、`:`、`/`、`#` 或 `%` 时，必须做 URL 编码。
 
 ## Docker 部署
 
 项目根目录提供 `Dockerfile`，服务器端 Compose 配置位于 `stack/ai-dashboard/docker-compose.yml`（与应用仓库并列的 `stack` 目录）。GitHub Actions 部署时会先通过 migration 镜像执行 `prisma migrate deploy` 和种子数据导入，再启动 Next.js 应用镜像。
 
-SQLite 仍然需要配置 `DATABASE_URL`，并且必须指向容器内持久化目录，例如：
+生产环境通过 GitHub Environment Secrets 注入 MySQL 连接，例如：
 
 ```env
 AI_DASHBOARD_IMAGE=your-registry/ai-dashboard:latest
-DATABASE_URL=file:/app/data/ai-dashboard.db
+DATABASE_URL=mysql://username:encoded-password@mysql-host:3306/ai_dashboard
+SHADOW_DATABASE_URL=mysql://username:encoded-password@mysql-host:3306/ai_dashboard_shadow
 JWT_SECRET=替换为至少 32 个字符的随机字符串
 ```
 
-其中 `DATABASE_URL` 的数据库文件位于 Docker volume `ai_dashboard_data` 中。不要把服务器生产密钥提交到仓库；通过服务器上的环境文件或 CI/CD Secret 注入 Compose。
-容器启动入口会将该数据目录调整为应用用户可写，避免 SQLite 报 `attempt to write a readonly database`。
+应用容器不保存数据库文件或使用 Docker Volume；所有业务数据由 MySQL/MariaDB 持久化。若数据库同样运行在 Docker 中，URL 的主机名必须是该数据库服务在 `web` 网络中可访问的名称，不能写 `127.0.0.1`。
 Compose 将宿主机 `3001` 映射到容器 `3001`。ai-dashboard 的本地和容器端口均为 `3001`，不会使用 `3000`。
 
 服务器的 Nginx 配置位于 `stack/nginx/conf.d/default.conf`，默认使用 `ai-dashboard.test` 转发到 Docker 网络中的 `ai-dashboard:3001`。正式域名启用前，将 `server_name ai-dashboard.test` 替换为实际域名。
@@ -119,13 +120,9 @@ Compose 将宿主机 `3001` 映射到容器 `3001`。ai-dashboard 的本地和�
 在 GitHub 的 `production` Environment 中配置以下变量和密钥：
 
 - Variables：`SSH_HOST`、`SSH_PORT`、`SSH_USERNAME`、`SSH_KNOWN_HOSTS`、`GHCR_USERNAME`
-- Secrets：`SSH_PRIVATE_KEY`、`GHCR_TOKEN`、`DATABASE_URL`、`JWT_SECRET`
+- Secrets：`SSH_PRIVATE_KEY`、`GHCR_TOKEN`、`DATABASE_URL`、`SHADOW_DATABASE_URL`、`JWT_SECRET`
 
-首次部署后如需导入职业方向演示数据，可执行：
-
-```powershell
-docker compose run --rm ai-dashboard npm run db:seed
-```
+部署工作流会自动执行迁移和幂等的职业方向种子数据导入，无需手动执行 seed。
 
 ## 演示流程
 

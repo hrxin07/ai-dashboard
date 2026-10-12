@@ -6,8 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider = "mysql"
 }
 
 enum TaskType {
@@ -31,10 +30,10 @@ enum TaskStatus {
 }
 
 model User {
-  id           String       @id @default(cuid())
-  username     String       @unique
-  email        String       @unique
-  passwordHash String
+  id           String       @id @default(cuid()) @db.VarChar(30)
+  username     String       @unique @db.VarChar(64)
+  email        String       @unique @db.VarChar(191)
+  passwordHash String       @db.VarChar(191)
   profile      Profile?
   careerPlan   CareerPlan?
   tasks        LearningTask[]
@@ -45,46 +44,46 @@ model User {
 }
 
 model Profile {
-  id         String   @id @default(cuid())
-  userId     String   @unique
+  id         String   @id @default(cuid()) @db.VarChar(30)
+  userId     String   @unique @db.VarChar(30)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  realName   String?
-  major      String   @default("人工智能")
-  grade      String?
-  school     String?
-  skills     String?
-  interests  String?
-  bio        String?
+  realName   String?  @db.VarChar(64)
+  major      String   @default("人工智能") @db.VarChar(64)
+  grade      String?  @db.VarChar(32)
+  school     String?  @db.VarChar(191)
+  skills     String?  @db.Text
+  interests  String?  @db.Text
+  bio        String?  @db.Text
   updatedAt  DateTime @updatedAt
   createdAt  DateTime @default(now())
 }
 
 model CareerPlan {
-  id              String   @id @default(cuid())
-  userId          String   @unique
+  id              String   @id @default(cuid()) @db.VarChar(30)
+  userId          String   @unique @db.VarChar(30)
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  targetDirection String
-  targetPosition  String
-  targetCity      String?
+  targetDirection String   @db.VarChar(191)
+  targetPosition  String   @db.VarChar(191)
+  targetCity      String?  @db.VarChar(191)
   targetDate      DateTime?
-  skillFoundation String?
-  strengths       String?
-  weaknesses      String?
-  planContent     String
+  skillFoundation String?  @db.Text
+  strengths       String?  @db.Text
+  weaknesses      String?  @db.Text
+  planContent     String   @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
 
 model LearningTask {
-  id          String       @id @default(cuid())
-  userId      String
+  id          String       @id @default(cuid()) @db.VarChar(30)
+  userId      String       @db.VarChar(30)
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title       String
+  title       String       @db.VarChar(191)
   type        TaskType     @default(OTHER)
   priority    TaskPriority  @default(MEDIUM)
   status      TaskStatus   @default(TODO)
   deadline    DateTime?
-  description String?
+  description String?      @db.Text
   progress    Int          @default(0)
   subtasks    LearningSubtask[]
   createdAt   DateTime     @default(now())
@@ -95,10 +94,10 @@ model LearningTask {
 }
 
 model LearningSubtask {
-  id        String       @id @default(cuid())
-  taskId    String
+  id        String       @id @default(cuid()) @db.VarChar(30)
+  taskId    String       @db.VarChar(30)
   task      LearningTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  title     String
+  title     String       @db.VarChar(191)
   completed Boolean      @default(false)
   sortOrder Int          @default(0)
   createdAt DateTime     @default(now())
@@ -108,14 +107,14 @@ model LearningSubtask {
 }
 
 model CareerPath {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String
-  skills      String
-  courses     String
-  projects    String
-  prospect    String
-  tags        String
+  id          String   @id @default(cuid()) @db.VarChar(30)
+  name        String   @unique @db.VarChar(191)
+  description String   @db.Text
+  skills      String   @db.Text
+  courses     String   @db.Text
+  projects    String   @db.Text
+  prospect    String   @db.Text
+  tags        String   @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
