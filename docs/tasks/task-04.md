@@ -6,14 +6,14 @@
 
 ## 验收标准
 - [x] 用户可用用户名或邮箱加正确密码登录，登录后进入 `/dashboard`；错误凭据显示明确反馈。
-- [x] JWT Cookie 具备 `HttpOnly`、`SameSite=Lax`，生产环境具备 `Secure` 属性，密钥从环境变量读取。
+- [x] JWT Cookie 具备 `HttpOnly`、`SameSite=Lax`；HTTPS 请求使用 `Secure` 属性，HTTP 本地/IP 访问不强制设置 `Secure`，密钥从环境变量读取。
 - [x] 未登录访问受保护页面或调用受保护 API 会被重定向或返回 `401`。
 
 ## 已完成实现
 - 新增响应式登录页，支持用户名或邮箱登录、必填校验、密码显隐、错误提示和登录后的跳转。
 - 新增 `POST /api/auth/login`：用 Zod 校验请求体，以用户名或邮箱查询用户，并以 bcryptjs 比对密码。
 - 使用 `jose` 签发和验证 7 天有效期的 HS256 JWT；令牌放入 `ai_career_session` HttpOnly Cookie。
-- Cookie 使用 `SameSite=Lax`、根路径和 7 天有效期，生产环境自动启用 `Secure`；JWT 密钥从 `JWT_SECRET` 环境变量读取。
+- Cookie 使用 `SameSite=Lax`、根路径和 7 天有效期；根据请求协议动态设置 `Secure`，兼容 HTTPS 域名和 HTTP IP 访问；JWT 密钥从 `JWT_SECRET` 环境变量读取。
 - 新增 `lib/current-user.ts`，在服务端组件、路由处理器或 Server Action 中可通过 `getCurrentAuthUser()` 读取并验证当前用户。
 - 使用 Next.js 16 的 `proxy.ts` 保护工作台、个人资料、职业规划、学习实践、职业方向与推荐页面；未登录 API 统一返回 `401` JSON。
 

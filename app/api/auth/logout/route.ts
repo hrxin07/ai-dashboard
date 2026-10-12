@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { successResponse } from "@/lib/api-response";
-import { AUTH_COOKIE_NAME, authCookieOptions } from "@/lib/auth";
+import { AUTH_COOKIE_NAME, getAuthCookieOptions } from "@/lib/auth";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   const response = successResponse(null, "已退出登录");
   response.cookies.set(AUTH_COOKIE_NAME, "", {
-    ...authCookieOptions,
+    ...getAuthCookieOptions(request),
     maxAge: 0,
     expires: new Date(0),
   });
