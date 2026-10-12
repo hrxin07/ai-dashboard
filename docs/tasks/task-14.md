@@ -11,6 +11,7 @@
 - [ ] 提供 Dockerfile 与服务器端 Compose 配置，支持 SQLite 数据卷持久化、迁移和生产环境变量注入（待具备 Docker 环境后验证镜像构建与启动）。
 - [x] ai-dashboard 本地、宿主机和容器内端口统一固定为 `3001`，不使用 `3000`。
 - [x] 提供 GitHub Actions 镜像发布与 SSH 部署流程，以及 Nginx 到 `ai-dashboard:3001` 的反向代理配置。
+- [ ] SQLite 数据卷在非 root 应用用户下可写（已补充启动时自动修复 Volume 权限，待 Docker 环境重新部署验证）。
 
 ## 验证方式
 - [x] `npm run lint`、`npm run build`、`npm run db:validate` 通过。

@@ -107,6 +107,7 @@ JWT_SECRET=替换为至少 32 个字符的随机字符串
 ```
 
 其中 `DATABASE_URL` 的数据库文件位于 Docker volume `ai_dashboard_data` 中。不要把服务器生产密钥提交到仓库；通过服务器上的环境文件或 CI/CD Secret 注入 Compose。
+容器启动入口会将该数据目录调整为应用用户可写，避免 SQLite 报 `attempt to write a readonly database`。
 Compose 将宿主机 `3001` 映射到容器 `3001`。ai-dashboard 的本地和容器端口均为 `3001`，不会使用 `3000`。
 
 服务器的 Nginx 配置位于 `stack/nginx/conf.d/default.conf`，默认使用 `ai-dashboard.test` 转发到 Docker 网络中的 `ai-dashboard:3001`。正式域名启用前，将 `server_name ai-dashboard.test` 替换为实际域名。
