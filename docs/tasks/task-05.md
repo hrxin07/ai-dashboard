@@ -16,7 +16,7 @@
 - 新增 `GET /api/auth/me`，复用服务端当前用户工具，仅返回 `id`、`username`、`email` 三个安全字段。
 - 新增 `POST /api/auth/logout`，以与登录一致的 Cookie 属性过期 `ai_career_session`，彻底清除会话。
 - 退出按钮完成请求后替换到登录页并刷新客户端路由状态。
-- 为需读取 Cookie 的受保护布局设置 `instant = false`，兼容项目已启用的 Next.js 16 Cache Components 配置。
+- 移除 Next.js 16 Cache Components 与 Partial Prefetching 配置，使读取 Cookie 的受保护布局按普通动态服务端渲染运行，避免生产环境出现 `ERROR_DYNAMIC_SERVER_USAGE`。
 
 ## 验证方式
 - [x] `npm run lint` 通过。
