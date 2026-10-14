@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { errorResponse, successResponse } from "@/lib/api-response";
-import { AUTH_COOKIE_NAME, authCookieOptions, createAuthToken } from "@/lib/auth";
+import { AUTH_COOKIE_NAME, createAuthToken, getAuthCookieOptions } from "@/lib/auth";
 import { verifyPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validations/auth";
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       { id: user.id, username: user.username, email: user.email },
       "登录成功",
     );
-    response.cookies.set(AUTH_COOKIE_NAME, token, authCookieOptions);
+    response.cookies.set(AUTH_COOKIE_NAME, token, getAuthCookieOptions(request));
     return response;
   } catch (error) {
     console.error("Login failed", error);

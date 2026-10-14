@@ -1,5 +1,3 @@
-export const instant = false;
-
 import { AppNav } from "@/components/app-nav";
 import { getCurrentAuthUser } from "@/lib/current-user";
 

@@ -51,10 +51,15 @@ export async function verifyAuthToken(token: string): Promise<AuthUser | null> {
   }
 }
 
-export const authCookieOptions = {
-  httpOnly: true,
-  sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
-  path: "/",
-  maxAge: 60 * 60 * 24 * 7,
-};
+export function getAuthCookieOptions(request?: Request) {
+  const forwardedProto = request?.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  const isHttps = forwardedProto === "https" || request?.url.startsWith("https://");
+
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production" && isHttps,
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  };
+}
