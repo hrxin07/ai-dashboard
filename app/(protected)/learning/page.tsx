@@ -16,6 +16,7 @@ type Task = {
   status: string;
   progress: number;
   deadline: string | null;
+  scheduleDate: string | null;
   description: string | null;
   subtasks: Subtask[];
 };
@@ -25,6 +26,7 @@ type TaskForm = {
   priority: string;
   progress: number;
   deadline: string;
+  scheduleDate: string;
   description: string;
   subtasks: Subtask[];
 };
@@ -47,6 +49,7 @@ const emptyForm: TaskForm = {
   priority: "MEDIUM",
   progress: 0,
   deadline: "",
+  scheduleDate: "",
   description: "",
   subtasks: [],
 };
@@ -106,6 +109,7 @@ export default function LearningPage() {
       priority: task.priority,
       progress: task.progress,
       deadline: task.deadline ? task.deadline.slice(0, 10) : "",
+      scheduleDate: task.scheduleDate ? task.scheduleDate.slice(0, 10) : "",
       description: task.description || "",
       subtasks: task.subtasks.map((subtask) => ({ ...subtask })),
     });
@@ -219,6 +223,14 @@ export default function LearningPage() {
             }
           />
         </div>
+        <label className="learning-schedule-label">
+          安排日期（可选，可在学习日历中查看）
+          <input
+            type="date"
+            value={form.scheduleDate}
+            onChange={(event) => setForm({ ...form, scheduleDate: event.target.value })}
+          />
+        </label>
         <textarea
           placeholder="补充任务说明（可选）"
           rows={3}

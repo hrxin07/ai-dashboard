@@ -38,6 +38,7 @@ const taskFields = {
     .max(100, "完成进度不能超过 100")
     .default(0),
   deadline: z.string().optional(),
+  scheduleDate: z.string().optional(),
   description: z
     .string()
     .trim()
@@ -57,6 +58,7 @@ export const taskUpdateSchema = z.object({
   status: taskStatus.optional(),
   progress: taskFields.progress.optional(),
   deadline: taskFields.deadline,
+  scheduleDate: taskFields.scheduleDate,
   description: taskFields.description,
   subtasks: taskFields.subtasks.optional(),
 });

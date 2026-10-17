@@ -19,6 +19,7 @@ export const taskSelect = {
   status: true,
   progress: true,
   deadline: true,
+  scheduleDate: true,
   description: true,
   createdAt: true,
   updatedAt: true,
@@ -82,8 +83,13 @@ export async function POST(request: Request) {
     );
 
   const deadline = parsed.data.deadline ? new Date(parsed.data.deadline) : null;
+  const scheduleDate = parsed.data.scheduleDate
+    ? new Date(parsed.data.scheduleDate)
+    : null;
   if (deadline && Number.isNaN(deadline.getTime()))
     return errorResponse("截止日期格式不正确", 400);
+  if (scheduleDate && Number.isNaN(scheduleDate.getTime()))
+    return errorResponse("安排日期格式不正确", 400);
 
   const progress = getTaskProgress(parsed.data.subtasks, parsed.data.progress);
   try {
@@ -96,6 +102,7 @@ export async function POST(request: Request) {
         status: getTaskStatus(progress),
         progress,
         deadline,
+        scheduleDate,
         description: parsed.data.description || null,
         subtasks: {
           create: parsed.data.subtasks.map((subtask, index) => ({

@@ -13,6 +13,7 @@ const taskSelect = {
   status: true,
   progress: true,
   deadline: true,
+  scheduleDate: true,
   description: true,
   createdAt: true,
   updatedAt: true,
@@ -66,6 +67,15 @@ export async function PATCH(
       if (deadline && Number.isNaN(deadline.getTime()))
         throw new Error("INVALID_DEADLINE");
 
+      const scheduleDate =
+        parsed.data.scheduleDate === undefined
+          ? existing.scheduleDate
+          : parsed.data.scheduleDate
+            ? new Date(parsed.data.scheduleDate)
+            : null;
+      if (scheduleDate && Number.isNaN(scheduleDate.getTime()))
+        throw new Error("INVALID_SCHEDULE_DATE");
+
       const subtasks = parsed.data.subtasks ?? existing.subtasks;
       const requestedProgress =
         parsed.data.progress ??
@@ -89,6 +99,7 @@ export async function PATCH(
             ? { priority: parsed.data.priority }
             : {}),
           deadline,
+          scheduleDate,
           description:
             parsed.data.description === undefined
               ? existing.description
@@ -116,6 +127,8 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof Error && error.message === "INVALID_DEADLINE")
       return errorResponse("截止日期格式不正确", 400);
+    if (error instanceof Error && error.message === "INVALID_SCHEDULE_DATE")
+      return errorResponse("安排日期格式不正确", 400);
     console.error(error);
     return errorResponse("任务更新失败", 500);
   }

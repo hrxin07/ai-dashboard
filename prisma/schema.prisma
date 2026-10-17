@@ -83,6 +83,7 @@ model LearningTask {
   priority    TaskPriority  @default(MEDIUM)
   status      TaskStatus   @default(TODO)
   deadline    DateTime?
+  scheduleDate DateTime?
   description String?      @db.Text
   progress    Int          @default(0)
   subtasks    LearningSubtask[]
@@ -91,6 +92,7 @@ model LearningTask {
 
   @@index([userId, status])
   @@index([userId, deadline])
+  @@index([userId, scheduleDate])
 }
 
 model LearningSubtask {
