@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { FormEvent, useEffect, useState } from "react";
 
 type Task = {
   id: string;
@@ -72,7 +73,7 @@ function monthTitle(month: Date) {
   }).format(month);
 }
 
-export default function CalendarPage() {
+export function StudyCalendar() {
   const today = toDateKey(new Date());
   const [tasks, setTasks] = useState<Task[]>([]);
   const [currentMonth, setCurrentMonth] = useState(
@@ -98,17 +99,15 @@ export default function CalendarPage() {
     });
   }, []);
 
-  const tasksByDate = useMemo(() => {
-    const grouped = new Map<string, Task[]>();
-    tasks.forEach((task) => {
-      if (!task.scheduleDate) return;
-      const dateKey = toDateKey(task.scheduleDate);
-      grouped.set(dateKey, [...(grouped.get(dateKey) ?? []), task]);
-    });
-    return grouped;
-  }, [tasks]);
+  const tasksOnDate = (date: string) => tasks.filter((task) => {
+    const start = task.scheduleDate ? toDateKey(task.scheduleDate) : null;
+    const end = task.deadline ? toDateKey(task.deadline) : null;
+    if (!start) return end === date;
+    if (!end || end < start) return start === date;
+    return start <= date && date <= end;
+  });
 
-  const selectedTasks = tasksByDate.get(selectedDate) ?? [];
+  const selectedTasks = tasksOnDate(selectedDate);
   const completedCount = selectedTasks.filter((task) => task.status === "COMPLETED").length;
   const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
   const gridStart = new Date(firstDay);
@@ -175,6 +174,22 @@ export default function CalendarPage() {
     void load();
   };
 
+  const toggleSubtask = async (task: Task, subtaskId: string) => {
+    const response = await fetch(`/api/tasks/${task.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        subtasks: task.subtasks.map((subtask) => ({
+          ...subtask,
+          completed: subtask.id === subtaskId ? !subtask.completed : subtask.completed,
+        })),
+      }),
+    });
+    const result = await response.json();
+    if (!response.ok) setNotice(result.message);
+    void load();
+  };
+
   const removeTask = async (task: Task) => {
     if (!window.confirm(`确认删除“${task.title}”吗？`)) return;
     const response = await fetch(`/api/tasks/${task.id}`, { method: "DELETE" });
@@ -187,11 +202,21 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="calendar-page">
+    <section className="dashboard-calendar">
       <header className="profile-page-head calendar-page-head">
         <div>
           <p className="profile-kicker">STUDY CALENDAR</p>
-          <h1>学习日历</h1>
+          <div className="calendar-brand">
+            <Image className="calendar-brand-seal" src="/scu-emblem.png" alt="四川大学校徽" width={54} height={54} priority />
+            <div>
+              <p className="calendar-university-name" aria-label="四川大学">
+                {"四川大学".split("").map((character) => <span key={character}>{character}</span>)}
+              </p>
+              <h1 aria-label="学习日历">
+                {"学习日历".split("").map((character) => <span key={character}>{character}</span>)}
+              </h1>
+            </div>
+          </div>
           <p>把学习任务安排到每天，按计划推进你的目标。</p>
         </div>
         <button
@@ -232,7 +257,7 @@ export default function CalendarPage() {
           <div className="calendar-grid">
             {days.map((day) => {
               const dateKey = toDateKey(day);
-              const dayTasks = tasksByDate.get(dateKey) ?? [];
+              const dayTasks = tasksOnDate(dateKey);
               const inMonth = day.getMonth() === currentMonth.getMonth();
               const isSelected = dateKey === selectedDate;
               return (
@@ -270,14 +295,32 @@ export default function CalendarPage() {
               <div className="agenda-list">
                 {selectedTasks.map((task) => (
                   <article className={`agenda-task ${task.status === "COMPLETED" ? "completed" : ""}`} key={task.id}>
-                    <button className="agenda-check" type="button" onClick={() => void toggleComplete(task)} aria-label={task.status === "COMPLETED" ? "标记为未完成" : "标记为完成"}>
-                      {task.status === "COMPLETED" ? "✓" : ""}
-                    </button>
-                    <button className="agenda-task-main" type="button" onClick={() => editTask(task)}>
-                      <strong>{task.title}</strong>
-                      <span>{types.find(([value]) => value === task.type)?.[1]} · {priorities.find(([value]) => value === task.priority)?.[1]}优先级 · {task.progress}%</span>
-                    </button>
-                    <button className="agenda-delete" type="button" onClick={() => void removeTask(task)} aria-label={`删除 ${task.title}`}>×</button>
+                    <div className="agenda-task-header">
+                      <button className="agenda-check" type="button" onClick={() => void toggleComplete(task)} aria-label={task.status === "COMPLETED" ? "标记为未完成" : "标记为完成"}>
+                        {task.status === "COMPLETED" ? "✓" : ""}
+                      </button>
+                      <button className="agenda-task-main" type="button" onClick={() => editTask(task)}>
+                        <strong>{task.title}</strong>
+                        <span>{types.find(([value]) => value === task.type)?.[1]} · {priorities.find(([value]) => value === task.priority)?.[1]}优先级 · {task.progress}%</span>
+                      </button>
+                      <button className="agenda-delete" type="button" onClick={() => void removeTask(task)} aria-label={`删除 ${task.title}`}>×</button>
+                    </div>
+                    {task.subtasks.length > 0 && (
+                      <details className="agenda-subtasks">
+                        <summary>
+                          <span>小任务 {task.subtasks.filter((subtask) => subtask.completed).length}/{task.subtasks.length}</span>
+                          <span className="agenda-subtasks-arrow" aria-hidden="true">⌄</span>
+                        </summary>
+                        <div className="agenda-subtask-list">
+                          {task.subtasks.map((subtask) => (
+                            <label className={subtask.completed ? "agenda-subtask completed" : "agenda-subtask"} key={subtask.id}>
+                              <input type="checkbox" checked={subtask.completed} onChange={() => void toggleSubtask(task, subtask.id)} />
+                              <span>{subtask.title}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </details>
+                    )}
                   </article>
                 ))}
               </div>
@@ -302,6 +345,6 @@ export default function CalendarPage() {
           {notice && <p className="profile-notice success">{notice}</p>}
         </aside>
       </div>
-    </div>
+    </section>
   );
 }

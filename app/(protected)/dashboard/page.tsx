@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { StudyCalendar } from "@/components/study-calendar";
 import { useEffect, useState } from "react";
 
 type DashboardData = {
@@ -75,6 +76,7 @@ export default function DashboardPage() {
           <strong>{data.learningProgress}%</strong>
         </article>
       </section>
+      <StudyCalendar />
       <section className="dashboard-bottom">
         <div className="upcoming">
           <div className="task-list-head">

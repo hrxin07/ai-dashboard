@@ -2080,10 +2080,8 @@ footer .brand-mark .icon {
 }
 
 /* Study calendar */
-.calendar-page {
-  margin: 0 auto;
-  max-width: 1240px;
-  padding: 52px 56px 60px;
+.dashboard-calendar {
+  margin-top: 18px;
 }
 .calendar-page-head {
   align-items: flex-end;
@@ -2297,7 +2295,6 @@ footer .brand-mark .icon {
 .calendar-editor .profile-save { margin-top: 16px; width: 100%; }
 @media (max-width: 1000px) { .calendar-layout { grid-template-columns: 1fr; } }
 @media (max-width: 760px) {
-  .calendar-page { padding: 36px 18px 38px; }
   .calendar-page-head { align-items: flex-start; flex-direction: column; gap: 16px; }
   .calendar-day { min-height: 67px; padding: 5px; }
   .calendar-task-dot { display: none; }
@@ -2309,3 +2306,417 @@ footer .brand-mark .icon {
 }
 .learning-schedule-label { color: #676a83; display: block; font-size: 11px; font-weight: 600; margin: 4px 0 12px; }
 .learning-schedule-label input { display: block; margin-top: 6px; }
+.agenda-task { display: block; }
+.agenda-task-header { align-items: center; display: grid; gap: 8px; grid-template-columns: auto minmax(0, 1fr) auto; }
+.agenda-task-main strong { font-size: 13px; line-height: 1.35; }
+.agenda-subtasks { border-top: 1px solid #ececf3; margin: 9px 0 0 26px; padding-top: 8px; }
+.agenda-subtasks summary { align-items: center; color: #7774a2; cursor: pointer; display: flex; font-size: 10px; font-weight: 600; gap: 6px; list-style: none; width: fit-content; }
+.agenda-subtasks summary::-webkit-details-marker { display: none; }
+.agenda-subtasks summary:focus-visible { border-radius: 3px; outline: 2px solid #847ddd; outline-offset: 3px; }
+.agenda-subtasks-arrow { display: inline-block; font-size: 13px; line-height: 1; transition: transform 0.15s ease; }
+.agenda-subtasks[open] .agenda-subtasks-arrow { transform: rotate(180deg); }
+.agenda-subtask-list { display: grid; gap: 5px; padding-top: 8px; }
+.agenda-subtask { align-items: center; color: #77798c; cursor: pointer; display: flex; font-size: 10px; gap: 6px; line-height: 1.35; }
+.agenda-subtask span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.agenda-subtask input { accent-color: #65b88d; height: 13px; margin: 0; width: 13px; }
+.agenda-subtask.completed { color: #a2a4b1; text-decoration: line-through; }
+
+/* Sichuan University-inspired study calendar theme */
+.dashboard-calendar {
+  --scu-red: #701b16;
+  --scu-red-deep: #52110f;
+  --scu-red-soft: #f7e9e4;
+  --scu-gold: #b89555;
+  --scu-gold-light: #eadbbd;
+  --scu-ink: #3f2924;
+  --scu-muted: #836e65;
+  --scu-paper: #fffcf7;
+  margin-top: 24px;
+}
+.dashboard-calendar .calendar-page-head {
+  background:
+    linear-gradient(90deg, rgba(82, 17, 15, 0.97) 0%, rgba(112, 27, 22, 0.93) 62%, rgba(112, 27, 22, 0.76) 100%),
+    url("/sichuan-university-calendar-bg.jpg") center 43% / cover;
+  border: 1px solid rgba(184, 149, 85, 0.65);
+  border-radius: 14px;
+  box-shadow: 0 14px 28px rgba(82, 17, 15, 0.18);
+  color: #fffaf1;
+  margin-bottom: 22px;
+  overflow: hidden;
+  padding: 25px 28px;
+  position: relative;
+}
+.dashboard-calendar .calendar-page-head::after {
+  border: 1px solid rgba(234, 219, 189, 0.46);
+  border-left: 0;
+  border-radius: 50%;
+  content: "";
+  height: 150px;
+  pointer-events: none;
+  position: absolute;
+  right: -58px;
+  top: -72px;
+  width: 150px;
+}
+.dashboard-calendar .calendar-page-head .profile-kicker {
+  color: #eadbbd;
+  letter-spacing: 0.19em;
+  margin-bottom: 8px;
+}
+.dashboard-calendar .calendar-page-head h1 {
+  color: #fffaf1;
+  font-family: Georgia, "Songti SC", "SimSun", serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 0 rgba(54, 11, 9, 0.25);
+}
+.dashboard-calendar .calendar-page-head > div > p:last-child {
+  color: rgba(255, 250, 241, 0.83);
+  margin-top: 8px;
+}
+.dashboard-calendar .calendar-today-button {
+  background: #f7efe0;
+  border: 1px solid #e5c98f;
+  border-radius: 5px;
+  box-shadow: 0 4px 10px rgba(35, 5, 4, 0.16);
+  color: var(--scu-red-deep);
+  position: relative;
+  z-index: 1;
+}
+.dashboard-calendar .calendar-today-button:hover {
+  background: #fffaf0;
+  color: var(--scu-red);
+}
+.dashboard-calendar .calendar-card,
+.dashboard-calendar .agenda-card,
+.dashboard-calendar .calendar-editor {
+  background: var(--scu-paper);
+  border: 1px solid #e6d7c7;
+  border-radius: 10px;
+  box-shadow: 0 9px 24px rgba(82, 17, 15, 0.07);
+}
+.dashboard-calendar .calendar-card {
+  border-top: 4px solid var(--scu-red);
+  padding: 21px 22px 23px;
+}
+.dashboard-calendar .calendar-toolbar {
+  border-bottom: 1px solid #ecdccf;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+}
+.dashboard-calendar .calendar-toolbar h2,
+.dashboard-calendar .agenda-heading h2,
+.dashboard-calendar .calendar-editor-heading h2 {
+  color: var(--scu-ink);
+  font-family: Georgia, "Songti SC", "SimSun", serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.dashboard-calendar .calendar-toolbar button {
+  background: #f8eee7;
+  border: 1px solid #ead5c7;
+  border-radius: 5px;
+  color: var(--scu-red);
+}
+.dashboard-calendar .calendar-toolbar button:hover {
+  background: var(--scu-red);
+  border-color: var(--scu-red);
+  color: #fffaf1;
+}
+.dashboard-calendar .calendar-weekdays {
+  background: #f8f0e8;
+  border-bottom: 1px solid #e8d8ca;
+  margin-bottom: 0;
+  padding: 8px 0;
+}
+.dashboard-calendar .calendar-weekdays span {
+  color: var(--scu-red);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+.dashboard-calendar .calendar-day {
+  border-color: #f0e6dc;
+  color: var(--scu-ink);
+  min-height: 96px;
+}
+.dashboard-calendar .calendar-day:hover {
+  background: #fff6ef;
+  border-color: #dcafa1;
+}
+.dashboard-calendar .calendar-day.muted {
+  background: #fdf9f4;
+  color: #cbbdb4;
+}
+.dashboard-calendar .calendar-day.today .calendar-day-number {
+  background: var(--scu-red);
+  border-radius: 3px;
+  color: #fffaf1;
+}
+.dashboard-calendar .calendar-day.selected {
+  background: #fbede7;
+  border-color: var(--scu-red);
+  box-shadow: inset 0 0 0 1px rgba(112, 27, 22, 0.14);
+}
+.dashboard-calendar .calendar-day-number {
+  font-family: Georgia, "Songti SC", "SimSun", serif;
+}
+.dashboard-calendar .calendar-task-dot {
+  background: #f7e7df;
+  border-left-color: var(--scu-red);
+  border-radius: 2px;
+  color: #772d25;
+}
+.dashboard-calendar .calendar-task-dot.done {
+  background: #f1eee7;
+  border-color: #a88958;
+  color: #7c7468;
+}
+.dashboard-calendar .calendar-more {
+  color: #967367;
+}
+.dashboard-calendar .agenda-card,
+.dashboard-calendar .calendar-editor {
+  border-left: 3px solid var(--scu-gold);
+}
+.dashboard-calendar .agenda-heading,
+.dashboard-calendar .calendar-editor-heading {
+  border-bottom: 1px solid #ecdccf;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+}
+.dashboard-calendar .agenda-heading p,
+.dashboard-calendar .calendar-editor-heading p {
+  color: var(--scu-red);
+  letter-spacing: 0.1em;
+}
+.dashboard-calendar .agenda-heading > span {
+  background: #f6ead9;
+  border: 1px solid #ead4ae;
+  border-radius: 4px;
+  color: #875d24;
+}
+.dashboard-calendar .calendar-empty {
+  color: var(--scu-muted);
+}
+.dashboard-calendar .agenda-task {
+  background: #fffdfa;
+  border-color: #eddfd4;
+  border-left: 3px solid #c7a162;
+  border-radius: 5px;
+}
+.dashboard-calendar .agenda-check {
+  border-color: #c8aa91;
+  color: var(--scu-red);
+}
+.dashboard-calendar .agenda-task.completed .agenda-check {
+  background: #f6eadf;
+  border-color: #b89555;
+}
+.dashboard-calendar .agenda-task-main strong {
+  color: var(--scu-ink);
+}
+.dashboard-calendar .agenda-task-main span,
+.dashboard-calendar .agenda-task.completed strong {
+  color: var(--scu-muted);
+}
+.dashboard-calendar .agenda-delete,
+.dashboard-calendar .calendar-editor-heading button {
+  color: #a07164;
+}
+.dashboard-calendar .agenda-delete:hover {
+  color: var(--scu-red);
+}
+.dashboard-calendar .agenda-subtasks {
+  border-top-color: #eaded3;
+}
+.dashboard-calendar .agenda-subtasks summary {
+  color: #8b5e4f;
+}
+.dashboard-calendar .agenda-subtasks summary:focus-visible {
+  outline-color: var(--scu-red);
+}
+.dashboard-calendar .agenda-subtask {
+  color: #776860;
+}
+.dashboard-calendar .agenda-subtask input {
+  accent-color: var(--scu-red);
+}
+.dashboard-calendar .agenda-subtask.completed {
+  color: #aa9c93;
+}
+.dashboard-calendar .calendar-editor label {
+  color: #69534a;
+}
+.dashboard-calendar .calendar-editor input,
+.dashboard-calendar .calendar-editor select,
+.dashboard-calendar .calendar-editor textarea {
+  background: #fffdfa;
+  border-color: #e7d6c8;
+  color: var(--scu-ink);
+  outline-color: var(--scu-red);
+}
+.dashboard-calendar .calendar-editor input:focus,
+.dashboard-calendar .calendar-editor select:focus,
+.dashboard-calendar .calendar-editor textarea:focus {
+  border-color: #aa5547;
+  box-shadow: 0 0 0 3px rgba(112, 27, 22, 0.1);
+}
+.dashboard-calendar .calendar-editor .profile-save {
+  background: var(--scu-red);
+  border: 1px solid var(--scu-red-deep);
+  border-radius: 5px;
+  box-shadow: 0 8px 16px rgba(112, 27, 22, 0.16);
+}
+.dashboard-calendar .calendar-editor .profile-save:hover:not(:disabled) {
+  background: var(--scu-red-deep);
+}
+@media (max-width: 760px) {
+  .dashboard-calendar .calendar-page-head {
+    padding: 22px 20px;
+  }
+  .dashboard-calendar .calendar-page-head::after {
+    height: 110px;
+    right: -52px;
+    top: -55px;
+    width: 110px;
+  }
+  .dashboard-calendar .calendar-day {
+    min-height: 67px;
+  }
+  .dashboard-calendar .calendar-task-preview::after {
+    background: var(--scu-red);
+  }
+}
+
+
+/* Full university identity in the calendar header */
+.dashboard-calendar .calendar-brand {
+  align-items: center;
+  display: flex;
+  gap: 13px;
+  position: relative;
+  z-index: 1;
+}
+.dashboard-calendar .calendar-brand-seal {
+  background: #f7efe0;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgba(32, 4, 3, 0.18);
+  display: block;
+  flex: 0 0 60px;
+  height: 60px;
+  object-fit: cover;
+  object-position: center;
+  padding: 0;
+  position: relative;
+  transform: scale(1.12);
+  width: 60px;
+}
+@media (max-width: 520px) {
+  .dashboard-calendar .calendar-brand-seal {
+    flex-basis: 48px;
+    height: 48px;
+    width: 48px;
+  }
+  .dashboard-calendar .calendar-university-name {
+    font-size: 18px;
+    letter-spacing: 0.1em;
+  }
+}
+
+
+/* Calendar title hierarchy */
+.dashboard-calendar .calendar-university-name {
+  color: #fffaf1;
+  font-family: Georgia, "Songti SC", "SimSun", serif;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.15;
+  margin: 0 0 4px;
+  white-space: nowrap;
+}
+.dashboard-calendar .calendar-brand h1 {
+  color: rgba(255, 250, 241, 0.92);
+  font-size: 20px;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  margin: 0;
+}
+@media (max-width: 520px) {
+  .dashboard-calendar .calendar-university-name {
+    font-size: 23px;
+    letter-spacing: 0.1em;
+  }
+  .dashboard-calendar .calendar-brand h1 {
+    font-size: 16px;
+  }
+}
+
+
+/* Emphasize the university name over the calendar subtitle */
+.dashboard-calendar .calendar-university-name {
+  font-size: 38px;
+  letter-spacing: 0.18em;
+  line-height: 1.05;
+  margin-bottom: 6px;
+}
+.dashboard-calendar .calendar-brand h1 {
+  font-size: 17px;
+  letter-spacing: 0.16em;
+}
+@media (max-width: 760px) {
+  .dashboard-calendar .calendar-university-name {
+    font-size: 30px;
+  }
+  .dashboard-calendar .calendar-brand h1 {
+    font-size: 15px;
+  }
+}
+@media (max-width: 520px) {
+  .dashboard-calendar .calendar-university-name {
+    font-size: 27px;
+  }
+  .dashboard-calendar .calendar-brand h1 {
+    font-size: 14px;
+  }
+}
+
+
+/* Keep the university name and calendar title precisely left-aligned */
+.dashboard-calendar .calendar-brand > div {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+.dashboard-calendar .calendar-university-name,
+.dashboard-calendar .calendar-brand h1 {
+  align-self: flex-start;
+  text-align: left;
+}
+
+
+/* Give both four-character title lines identical left and right edges */
+.dashboard-calendar .calendar-brand > div {
+  --calendar-brand-title-width: 224px;
+  width: var(--calendar-brand-title-width);
+}
+.dashboard-calendar .calendar-university-name,
+.dashboard-calendar .calendar-brand h1 {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
+  letter-spacing: 0;
+  width: 100%;
+}
+@media (max-width: 760px) {
+  .dashboard-calendar .calendar-brand > div {
+    --calendar-brand-title-width: 184px;
+  }
+}
+@media (max-width: 520px) {
+  .dashboard-calendar .calendar-brand > div {
+    --calendar-brand-title-width: 166px;
+  }
+}

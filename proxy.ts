@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { AUTH_COOKIE_NAME, verifyAuthToken } from "@/lib/auth";
 
-const protectedPagePaths = ["/dashboard", "/career-plan", "/career-paths", "/learning", "/calendar", "/profile", "/recommendation"];
+const protectedPagePaths = ["/dashboard", "/career-plan", "/career-paths", "/learning", "/profile", "/recommendation"];
 const publicAuthApiPaths = ["/api/auth/register", "/api/auth/login"];
 
 export async function proxy(request: NextRequest) {
@@ -40,7 +40,6 @@ export const config = {
     "/career-plan/:path*",
     "/career-paths/:path*",
     "/learning/:path*",
-    "/calendar/:path*",
     "/profile/:path*",
     "/recommendation/:path*",
     "/api/:path*",

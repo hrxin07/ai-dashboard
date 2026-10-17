@@ -13,7 +13,6 @@ const navItems: NavItem[] = [
   { href: "/career-plan", label: "职业规划", shortLabel: "规划", icon: "◇" },
   { href: "/career-paths", label: "职业方向", shortLabel: "方向", icon: "◎" },
   { href: "/learning", label: "学习实践", shortLabel: "学习", icon: "✓" },
-  { href: "/calendar", label: "学习日历", shortLabel: "日历", icon: "□" },
   { href: "/profile", label: "个人中心", shortLabel: "我的", icon: "◌" },
 ];
 
