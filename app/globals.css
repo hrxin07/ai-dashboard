@@ -1780,7 +1780,7 @@ footer .brand-mark .icon {
 .stats-grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 }
 .stats-grid article {
   padding: 19px;

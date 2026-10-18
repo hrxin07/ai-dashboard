@@ -18,7 +18,6 @@ type DashboardData = {
   }[];
   total: number;
   completed: number;
-  inProgress: number;
   learningProgress: number;
   completionRate: number;
 };
@@ -62,10 +61,6 @@ export default function DashboardPage() {
         <article>
           <span>任务总数</span>
           <strong>{data.total}</strong>
-        </article>
-        <article>
-          <span>进行中</span>
-          <strong>{data.inProgress}</strong>
         </article>
         <article>
           <span>已完成</span>
