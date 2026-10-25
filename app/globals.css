@@ -2720,3 +2720,8 @@ footer .brand-mark .icon {
     --calendar-brand-title-width: 166px;
   }
 }
+
+.dashboard-retry {
+  border: 0;
+  cursor: pointer;
+}

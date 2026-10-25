@@ -1,5 +1,7 @@
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
+const DATABASE_CONNECT_TIMEOUT_MS = 3_000;
+
 export function createPrismaAdapter() {
   const databaseUrl = process.env.DATABASE_URL;
 
@@ -26,5 +28,9 @@ export function createPrismaAdapter() {
     password: decodeURIComponent(url.password),
     database: decodeURIComponent(database),
     connectionLimit: 5,
+    // Do not hold API requests for the driver's default 10-second pool timeout
+    // when the configured database cannot complete its MySQL handshake.
+    acquireTimeout: DATABASE_CONNECT_TIMEOUT_MS,
+    connectTimeout: DATABASE_CONNECT_TIMEOUT_MS,
   });
 }

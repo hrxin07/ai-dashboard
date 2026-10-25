@@ -2,6 +2,14 @@ import { errorResponse, successResponse } from "@/lib/api-response";
 import { getCurrentAuthUser } from "@/lib/current-user";
 import { prisma } from "@/lib/prisma";
 
+function isDatabaseUnavailable(error: unknown) {
+  if (!(error instanceof Error)) return false;
+
+  return /connection timeout|pool timeout|failed to retrieve a connection|failed to create socket|econnrefused|econnreset/i.test(
+    error.message,
+  );
+}
+
 export async function GET() {
   const user = await getCurrentAuthUser();
   if (!user) return errorResponse("未登录或登录状态已过期", 401);
@@ -58,7 +66,12 @@ export async function GET() {
       "获取工作台成功",
     );
   } catch (error) {
-    console.error(error);
+    console.error("Dashboard data request failed", error);
+
+    if (isDatabaseUnavailable(error)) {
+      return errorResponse("数据库暂时无法连接，请稍后重试", 503);
+    }
+
     return errorResponse("工作台数据读取失败", 500);
   }
 }

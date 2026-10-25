@@ -22,15 +22,64 @@ type DashboardData = {
   completionRate: number;
 };
 
+type ApiResponse = {
+  success?: boolean;
+  message?: string;
+  data?: DashboardData;
+};
+
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [requestVersion, setRequestVersion] = useState(0);
+
   useEffect(() => {
-    fetch("/api/dashboard", { cache: "no-store" })
-      .then((response) => response.json())
-      .then((result) => {
-        if (result.success) setData(result.data);
-      });
-  }, []);
+    let cancelled = false;
+
+    async function loadDashboard() {
+      setError(null);
+
+      try {
+        const response = await fetch("/api/dashboard", { cache: "no-store" });
+        const result = (await response.json()) as ApiResponse;
+
+        if (!response.ok || !result.success || !result.data) {
+          throw new Error(result.message ?? "工作台数据读取失败，请稍后重试");
+        }
+
+        if (!cancelled) setData(result.data);
+      } catch (error) {
+        if (cancelled) return;
+
+        setData(null);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "工作台数据读取失败，请稍后重试",
+        );
+      }
+    }
+
+    void loadDashboard();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [requestVersion]);
+
+  if (error)
+    return (
+      <div className="dashboard-page">
+        <p className="empty-state">{error}</p>
+        <button
+          className="button button-primary dashboard-retry"
+          onClick={() => setRequestVersion((version) => version + 1)}
+          type="button"
+        >
+          重新加载
+        </button>
+      </div>
+    );
 
   if (!data)
     return (
